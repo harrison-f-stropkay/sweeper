@@ -26,7 +26,7 @@ class Minesweeper:
             y_min = max(0, cur_tile[0] - 1)
             x_min = max(0, cur_tile[1] - 1)
             y_max = min(board_height - 1, cur_tile[0] + 1)
-            x_max = min(board_height - 1, cur_tile[1] + 1)
+            x_max = min(board_width - 1, cur_tile[1] + 1)
             for y in range(y_min, y_max + 1):
                 for x in range(x_min, x_max + 1):
                     if self.board[y, x] != -1:
