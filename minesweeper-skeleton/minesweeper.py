@@ -35,7 +35,6 @@ class Minesweeper:
             if self.tiles[y, x]:
                 self.tiles[y, x] = False
                 self.tiles[self.extra_tile] = True
-
         if self.has_lost:
             return -1
         elif self.tiles[y, x]:
