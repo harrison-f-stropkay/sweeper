@@ -1,10 +1,9 @@
-# Harrison Stropkay
-
 import numpy as np
 import random
+import SingleGame
 
 
-class Minesweeper:
+class Minefield:
     def __init__(self, tiles_height, tiles_width, num_bombs) -> None:
         self.tiles_height = tiles_height
         self.tiles_width = tiles_width
@@ -27,7 +26,6 @@ class Minesweeper:
         # save the extra random tile in case the user selects a bomb tile on first guess
         self.extra_tile = divmod(sequence[num_bombs], tiles_width)
 
-    # returns value of tile or -1 if tile is a bomb
     def reveal_tile(self, y, x) -> int:
         # if first guess is a bomb tile, move that bomb to another tile
         if self.first_guess:
@@ -36,10 +34,10 @@ class Minesweeper:
                 self.tiles[y, x] = False
                 self.tiles[self.extra_tile] = True
         if self.has_lost:
-            return -1
+            return SingleGame.BOMB
         elif self.tiles[y, x]:
             self.has_lost = True
-            return -1
+            return SingleGame.BOMB
         else:
             count = 0
             y_min, y_max = max(y - 1, 0), min(y + 1, self.tiles_height - 1)
@@ -73,4 +71,3 @@ def buffer(*args) -> str:
     # set input to " " if input is not given as argument
     input = str(args[0]) if args else ""
     return input.ljust(3)
-
