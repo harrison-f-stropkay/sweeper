@@ -1,0 +1,3 @@
+HIDDEN = -1
+BOMB = -2
+FLAGGED = -3

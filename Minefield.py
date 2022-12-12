@@ -1,7 +1,6 @@
 import numpy as np
 import random
-import SingleGame
-
+import codes
 
 class Minefield:
     def __init__(self, tiles_height, tiles_width, num_bombs) -> None:
@@ -9,7 +8,6 @@ class Minefield:
         self.tiles_width = tiles_width
         self.num_bombs = num_bombs
         self.tiles = np.full([tiles_height, tiles_width], False)
-        self.has_lost = False
         self.first_guess = True
         
         # get (num_bombs + 1) random integers in our range using a partial Fisher–Yates shuffle
@@ -33,11 +31,9 @@ class Minefield:
             if self.tiles[y, x]:
                 self.tiles[y, x] = False
                 self.tiles[self.extra_tile] = True
-        if self.has_lost:
-            return SingleGame.BOMB
-        elif self.tiles[y, x]:
-            self.has_lost = True
-            return SingleGame.BOMB
+        # either return BOMB constant or the proper count
+        if self.tiles[y, x]:
+            return codes.BOMB
         else:
             count = 0
             y_min, y_max = max(y - 1, 0), min(y + 1, self.tiles_height - 1)

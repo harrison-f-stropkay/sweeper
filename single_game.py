@@ -1,18 +1,16 @@
 import numpy as np
-import Minefield
-from Minefield import *
-class SingleGame:
-    HIDDEN = -1
-    BOMB = -2
-    FLAGGED = -3
+from minefield import *
+import codes
 
+class SingleGame:
     def __init__(self, tiles_height, tiles_width, num_bombs) -> None:
         self.tiles_height = tiles_height
         self.tiles_width = tiles_height
         self.minefield = Minefield(tiles_height, tiles_width, num_bombs)
-        self.gamefield = np.full((tiles_height, tiles_width), SingleGame.HIDDEN)
+        self.gamefield = np.full((tiles_height, tiles_width), codes.HIDDEN)
 
     def __str__(self) -> str:
+        # add top left corner space
         result = buffer()
         # add x indices
         for x in range(self.tiles_width):
@@ -23,12 +21,11 @@ class SingleGame:
             result += buffer(y)
             for x in range(self.tiles_width):
                 match self.gamefield[y, x]:
-                    case SingleGame.HIDDEN:
+                    case codes.HIDDEN:
                         result += buffer()
-                    case SingleGame.BOMB:
+                    case codes.BOMB:
                         result += buffer('*')
-                        break
-                    case SingleGame.FLAGGED:
+                    case codes.FLAGGED:
                         result += buffer('F')
                     case _:
                         result += buffer(str(self.gamefield[y, x]))
