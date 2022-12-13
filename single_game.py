@@ -10,8 +10,8 @@ class SingleGame:
         self.gamefield = np.full((tiles_height, tiles_width), codes.HIDDEN)
 
     def __str__(self) -> str:
-        # add top left corner space
-        result = buffer()
+        # add top blank line and top left corner space
+        result = "\n" + buffer()
         # add x indices
         for x in range(self.tiles_width):
             result += buffer(x)
@@ -37,19 +37,27 @@ class SingleGame:
         print(self)
         # game loop
         while (True):
-            # get player guess
-            line = input("Guess: ")
-            line_split = line.split()
-            y = int(line_split[0])
-            x = int(line_split[1])
-
-            result = self.minefield.reveal_tile(y, x)
+            guess = scan_guess()
+            y = guess[0]
+            x = guess[1]
+            result = self.minefield.reveal_tile(x, y)
             self.gamefield[y, x] = result
             print(self)
-            if result == -1:
+            if result == codes.BOMB:
+                print("Game over")
                 return False
 
+def scan_guess() -> tuple:
+    while (True):
+        try:
+            line = input("Guess: ")
+            line_split = line.split()
+            return (int(line_split[0]), int(line_split[1]))
+            # TODO move to except if more than 2 or given or if theyre out of bounds
+        except:
+            print("Invalid input, try again. Usage: int int. Example: 5 2 for row 5, column 2")
+    
 
 test_game = SingleGame(10, 10, 12)
-print(test_game.minefield)
+#print(test_game.minefield)
 test_game.play()

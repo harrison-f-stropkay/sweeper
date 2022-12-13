@@ -63,7 +63,5 @@ class Minefield:
         return result
 
 
-def buffer(*args) -> str:
-    # set input to " " if input is not given as argument
-    input = str(args[0]) if args else ""
-    return input.ljust(3)
+def buffer(input="") -> str:
+    return str(input).ljust(3)
