@@ -22,7 +22,7 @@ class Field:
             result += "\n"
         return result
 
-    def neightbors_iterate(self, y, x, func):
+    def neighbors_iterate(self, y, x, func, arg) -> None:
         y_min, y_max = max(y - 1, 0), min(y + 1, self.height - 1)
         x_min, x_max = max(x - 1, 0), min(x + 1, self.width - 1)
         for current_y in range(y_min, y_max + 1):
@@ -30,9 +30,25 @@ class Field:
                 # skips iteration of given tile
                 if current_y == y and current_x == x:
                     continue
-                # call function on each neighbor
-                func(self, current_y, current_x)
+                # call function with each neighbor value and given parameter
+                func(self.tiles[current_y, current_x], arg)
+
+    def tile_value(self, y, x) -> int:
+        def if_bomb_add_one(value, arg) -> None:
+            if value == codes.BOMB:
+                arg[0] += 1
+
+        count = [0]
+        self.neighbors_iterate(y, x, if_bomb_add_one, count)
+        return count[0]
 
 
 def buffer(input="") -> str:
     return str(input).ljust(3)
+
+
+test_field = Field(10, 10, codes.HIDDEN)
+test_field.tiles[5, 4] = codes.BOMB
+test_field.tiles[5, 5] = codes.BOMB
+test_field.tiles[5, 6] = codes.BOMB
+print(test_field.tile_value(4, 4))
