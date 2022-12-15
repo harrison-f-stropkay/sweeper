@@ -1,48 +1,36 @@
 import numpy as np
-from minefield import *
 import codes
+from minefield import *
+from gamefield import *
 
 class SingleGame:
     def __init__(self, tiles_height, tiles_width, num_bombs) -> None:
         self.tiles_height = tiles_height
         self.tiles_width = tiles_height
         self.minefield = Minefield(tiles_height, tiles_width, num_bombs)
-        self.gamefield = np.full((tiles_height, tiles_width), codes.HIDDEN)
-
-    def __str__(self) -> str:
-        # add top blank line and top left corner space
-        result = "\n" + buffer()
-        # add x indices
-        for x in range(self.tiles_width):
-            result += buffer(x)
-        result += "\n"
-        # add y indices and tile values
-        for y in range(self.tiles_height):
-            result += buffer(y)
-            for x in range(self.tiles_width):
-                match self.gamefield[y, x]:
-                    case codes.HIDDEN:
-                        result += buffer()
-                    case codes.BOMB:
-                        result += buffer('*')
-                    case codes.FLAGGED:
-                        result += buffer('F')
-                    case _:
-                        result += buffer(str(self.gamefield[y, x]))
-            result += "\n"
-        return result
-
+        self.gamefield = GameField(tiles_height, tiles_width)
+    
     # returns True if game is won, False if lost
     def play(self) -> bool:
         print(self)
-        # game loop
         while (True):
-            guess = scan_guess()
-            y = guess[0]
-            x = guess[1]
+            y, x = scan_guess()
             result = self.minefield.reveal_tile(x, y)
+            # automatically flip any tiles neighboring a 0 tile
+            if result == 0:
+                zero_tiles = [(y, x)]
+
+                def flip(self, y, x) -> None:
+                    self.gamefield = self.minefield.reveal_tile(y, x)
+
+                while zero_tiles:
+                    self.gamefield.neightbors_iterate(y, x, function (): )
+                    
+            # record tile value in game model
             self.gamefield[y, x] = result
+            # show new model
             print(self)
+            # exit loop if game lost
             if result == codes.BOMB:
                 print("Game over")
                 return False
@@ -56,6 +44,8 @@ def scan_guess() -> tuple:
             # TODO move to except if more than 2 or given or if theyre out of bounds
         except:
             print("Invalid input, try again. Usage: int int. Example: 5 2 for row 5, column 2")
+
+
     
 
 test_game = SingleGame(10, 10, 12)

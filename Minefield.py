@@ -37,7 +37,7 @@ class Minefield:
         else:
             count = 0
             y_min, y_max = max(y - 1, 0), min(y + 1, self.tiles_height - 1)
-            x_min, x_max = max(x - 1, 0), min(x + 1, self.tiles_width - 1)
+            x_min, x_max = max(x - 1, 0), min(x + 1, self.tiles_width - 1)      # TODO should use iterator in single_game
             for y in range(y_min, y_max + 1):
                 for x in range(x_min, x_max + 1):
                     if self.tiles[y, x]:
