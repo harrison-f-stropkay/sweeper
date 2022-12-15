@@ -22,5 +22,17 @@ class Field:
             result += "\n"
         return result
 
+    def neightbors_iterate(self, y, x, func):
+        y_min, y_max = max(y - 1, 0), min(y + 1, self.height - 1)
+        x_min, x_max = max(x - 1, 0), min(x + 1, self.width - 1)
+        for current_y in range(y_min, y_max + 1):
+            for current_x in range(x_min, x_max + 1):
+                # skips iteration of given tile
+                if current_y == y and current_x == x:
+                    continue
+                # call function on each neighbor
+                func(self, current_y, current_x)
+
+
 def buffer(input="") -> str:
     return str(input).ljust(3)

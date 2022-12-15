@@ -1,13 +1,14 @@
+from field import Field
 import numpy as np
 import random
 import codes
 
-class Minefield:
+class Minefield(Field):
     def __init__(self, tiles_height, tiles_width, num_bombs) -> None:
         self.tiles_height = tiles_height
         self.tiles_width = tiles_width
         self.num_bombs = num_bombs
-        self.tiles = np.full([tiles_height, tiles_width], False)
+        self.tiles = Field(h)
         self.first_guess = True
         
         # get (num_bombs + 1) random integers in our range using a partial Fisher–Yates shuffle
