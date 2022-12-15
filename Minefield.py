@@ -44,24 +44,7 @@ class Minefield:
                         count += 1
             return count
 
-    def __str__(self) -> str:
-        # add top left corner space
-        result = buffer()
-        # add x indices
-        for x in range(self.tiles_width):
-            result += buffer(x)
-        result += "\n"
-        # add y indices and tile values
-        for y in range(self.tiles_height):
-            result += buffer(y)
-            for x in range(self.tiles_width):
-                if self.tiles[y, x]:
-                    result += buffer('*')
-                else:
-                    result += buffer('.')
-            result += "\n"
-        return result
+    
 
 
-def buffer(input="") -> str:
-    return str(input).ljust(3)
+

@@ -1,5 +1,4 @@
 import numpy as np
-import codes
 from minefield import *
 from gamefield import *
 
