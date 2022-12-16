@@ -22,25 +22,22 @@ class Field:
             result += "\n"
         return result
 
-    def neighbors_iterate(self, y, x, func, arg) -> None:
-        y_min, y_max = max(y - 1, 0), min(y + 1, self.height - 1)
-        x_min, x_max = max(x - 1, 0), min(x + 1, self.width - 1)
+    def get_neighbors(self, tile): # -> [(int)]  ?
+        y = tile[0]
+        x = tile[1]
+        y_min = max(y - 1, 0)
+        x_min = max(x - 1, 0) 
+        y_max = min(y + 1, self.height - 1)
+        x_max = min(x + 1, self.width - 1)
+
+        neighbors = []
         for current_y in range(y_min, y_max + 1):
             for current_x in range(x_min, x_max + 1):
-                # skips iteration of given tile
-                if current_y == y and current_x == x:
-                    continue
-                # call function with each neighbor value and given parameter
-                func(self.tiles[current_y, current_x], arg)
+                if current_y != y or current_x != x:
+                    neighbors.append((current_y, current_x))
+        return neighbors
 
-    def tile_value(self, y, x) -> int:
-        def if_bomb_add_one(value, arg) -> None:
-            if value == codes.BOMB:
-                arg[0] += 1
-
-        count = [0]
-        self.neighbors_iterate(y, x, if_bomb_add_one, count)
-        return count[0]
+    
 
 
 def buffer(input="") -> str:

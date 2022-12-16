@@ -7,7 +7,6 @@ class Minefield(Field):
     def __init__(self, height, width, num_bombs) -> None:
         super().__init__(height, width, False)
         self.num_bombs = num_bombs
-        self.first_guess = True
         
         # get (num_bombs + 1) random integers in our range using a partial Fisher–Yates shuffle
         sequence = np.arange(0, height * width)
@@ -23,20 +22,15 @@ class Minefield(Field):
         # save the extra random tile in case the user selects a bomb tile on first guess
         self.extra_tile = divmod(sequence[num_bombs], width)
 
-    def reveal_tile(self, y, x) -> int:
-        # if first guess is a bomb tile, move that bomb to another tile
-        if self.first_guess:
-            self.first_guess = False
-            if self.tiles[y, x]:
-                self.tiles[y, x] = False
-                self.tiles[self.extra_tile] = True
+    def get_tile_value(self, tile) -> int:
+        value = 0
+        neighbors = self.get_neighbors(self, tile)
+        for neighbor in neighbors:
+            if self.tiles[neighbor]:
+                value += 1
+        return value
 
-        # either return BOMB constant or the proper count
-        if self.tiles[y, x]:
-            return codes.BOMB
-        else:
-            return self.tile_value(y, x)
-
+    
     
 
 
