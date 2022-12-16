@@ -38,5 +38,6 @@ class Field:
         return neighbors
 
 
-def buffer(input="") -> str:
+def buffer(*args) -> str:
+    input = args[0] if args else "" 
     return str(input).ljust(3)

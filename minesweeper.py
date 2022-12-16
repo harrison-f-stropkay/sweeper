@@ -24,7 +24,7 @@ class SingleGame:
 
     # returns True if game is won, False if lost
     def play(self) -> bool:
-        print(self)
+        print(self.gamefield)
         while (True):
             guessed_tile = scan_guess()
             result = self.minefield.tiles[guessed_tile]
