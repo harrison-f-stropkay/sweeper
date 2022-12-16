@@ -1,11 +1,10 @@
 import numpy as np
-from minefield import *
+from field import Field
 import codes
 
-class GameField:
+class Gamefield(Field):
     def __init__(self, height, width) -> None:
         self.height = height
         self.width = width
-        self.game_field = np.full((height, width), codes.HIDDEN)
+        self.tiles = np.full((height, width), codes.HIDDEN)
 
-    

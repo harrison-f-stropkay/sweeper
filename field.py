@@ -22,7 +22,7 @@ class Field:
             result += "\n"
         return result
 
-    def get_neighbors(self, tile): # -> [(int)]  ?
+    def get_neighbors(self, tile) -> list[tuple]:
         y = tile[0]
         x = tile[1]
         y_min = max(y - 1, 0)
@@ -37,15 +37,6 @@ class Field:
                     neighbors.append((current_y, current_x))
         return neighbors
 
-    
-
 
 def buffer(input="") -> str:
     return str(input).ljust(3)
-
-
-test_field = Field(10, 10, codes.HIDDEN)
-test_field.tiles[5, 4] = codes.BOMB
-test_field.tiles[5, 5] = codes.BOMB
-test_field.tiles[5, 6] = codes.BOMB
-print(test_field.tile_value(4, 4))

@@ -22,9 +22,11 @@ class Minefield(Field):
         # save the extra random tile in case the user selects a bomb tile on first guess
         self.extra_tile = divmod(sequence[num_bombs], width)
 
-    def get_tile_value(self, tile) -> int:
+    def tile_value(self, tile) -> int:
+        if self.tiles[tile]:
+            return codes.BOMB
         value = 0
-        neighbors = self.get_neighbors(self, tile)
+        neighbors = self.get_neighbors(tile)
         for neighbor in neighbors:
             if self.tiles[neighbor]:
                 value += 1
