@@ -7,20 +7,7 @@ class Field:
         self.width = width
         self.tiles = np.full((height, width), filler)
 
-    def __str__(self) -> str:
-        # add top left corner space
-        result = buffer()
-        # add x indices
-        for x in range(self.width):
-            result += buffer(x)
-        result += "\n"
-        # add y indices and tile values
-        for y in range(self.height):
-            result += buffer(y)
-            for x in range(self.width):
-                result += buffer(codes.symbol(self.tiles[y, x]))
-            result += "\n"
-        return result
+    
 
     def get_neighbors(self, tile) -> list[tuple]:
         y = tile[0]
@@ -38,6 +25,3 @@ class Field:
         return neighbors
 
 
-def buffer(*args) -> str:
-    input = args[0] if args else "" 
-    return str(input).ljust(3)
