@@ -1,6 +1,8 @@
 import codes
 from board import Board
 
+# TODO make imports work w vscode
+
 # returns True if game is won, False if lost
 def play(board) -> bool:
     print(board)

@@ -9,7 +9,7 @@ class Board:
         self.height = height
         self.number_bombs = number_bombs
         self.first_guess = True
-        self.tiles = np.empty((width, height), Tile)
+        self.tiles = np.empty((width, height))
         self.status = codes.ONGOING
         self.number_unflipped = width * height - number_bombs
 
