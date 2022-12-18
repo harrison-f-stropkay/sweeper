@@ -5,6 +5,7 @@ import codes
 
 # TODO: make vscode recognize instance methods
 # TODO: unflag / what happens if you flip/flag a flagged tile
+# TODO: convert to the easy extra tile system
 
 class Minesweeper:
     def __init__(self, width, height, number_bombs) -> None:
@@ -15,7 +16,6 @@ class Minesweeper:
         self.tiles = np.empty((width, height))
         self.status = codes.ONGOING
         self.number_unflipped = width * height - number_bombs
-
         # create tiles
         number_tiles = width * height
         tiles_list = []
@@ -23,15 +23,12 @@ class Minesweeper:
             tiles_list.append(Tile(codes.NOT_BOMB))
         for i in range(number_bombs):
             tiles_list.append(Tile(codes.BOMB))
-
         # store extra non-bomb tile
         self.extra_tile = tiles_list[0]
-
         # Fisher–Yates shuffle
         for i in range(number_tiles):
             random_index = random.randrange(width * height - i)
             tiles_list[random_index], tiles_list[number_tiles - 1 - i] = tiles_list[number_tiles - 1 - i], tiles_list[random_index]
-
         # convert to numpy 2-d array
         self.tiles = np.array(tiles_list, dtype=Tile).reshape((width, height))
 
