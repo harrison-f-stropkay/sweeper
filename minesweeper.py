@@ -3,6 +3,9 @@ import random
 from tile import Tile
 import codes
 
+# TODO: make vscode recognize instance methods
+# TODO: unflag / what happens if you flip/flag a flagged tile
+
 class Minesweeper:
     def __init__(self, width, height, number_bombs) -> None:
         self.width = width
@@ -67,31 +70,43 @@ class Minesweeper:
             if self.tiles[location].true_value == codes.BOMB:
                 self.swap_bomb(location)
             self.set_tile_values()
-        # reveal tile
-        if self.tiles[location].game_value == codes.UNKNOWN:
+        # when location maps to an unflipped tile, flip it
+        if self.tiles[location].game_value == codes.UNFLIPPED:
             self.tiles[location].game_value = self.tiles[location].true_value
             self.number_unflipped -= 1
+        # when location maps to an unflipped tile t with value v, if t has v flagged neighbors, flip the rest of t's neighbors
         else:
-            pass    # TODO handle clicking a revealed tile to expose other guarenteed to not be bombs
+            number_flagged_neighbors = 0
+            for neighbor_location in self.get_neighbor_locations(location):
+                if self.tiles[location].game_value == codes.FLAG:
+                    number_flagged_neighbors += 1
+            if number_flagged_neighbors == self.tiles[location].game_value:
+                for neighbor_location in self.get_neighbor_locations(location):
+                    self.flip(neighbor_location)
+
         # if guess is a zero tile, flip all neighboring tiles (including neighbors of additional 0 tiles discovered in the process)
         if self.tiles[location].true_value == 0:
-            for neighbor_locations in self.get_neighbor_locations(location):
-                if self.tiles[neighbor_locations].game_value == codes.UNKNOWN:
-                    self.flip(neighbor_locations)
+            for neighbor_location in self.get_neighbor_locations(location):
+                if self.tiles[neighbor_location].game_value == codes.UNFLIPPED:
+                    self.flip(neighbor_location)
         # change game status if necessary
         if self.tiles[location].true_value == codes.BOMB:
             self.status = codes.LOST
         elif self.number_unflipped == 0:
             self.status = codes.WON
         
-    def flag(self, location) -> None:                   ## TODO put this info in CLI?
+    def flag(self, location) -> None:
         self.tiles[location].game_value = codes.FLAG
 
     def play(self) -> bool:
         print(self)
         # game loop
         while self.status == codes.ONGOING:
-            self.flip(scan_guess())
+            cleaned_input = self.scan_guess()
+            if type(cleaned_input[0]) == tuple:
+                self.flag(cleaned_input[0])
+            else:
+                self.flip(cleaned_input)
             print(self)
         # print concluding message
         if self.status == codes.WON:
@@ -100,6 +115,29 @@ class Minesweeper:
         else:
             print("Game lost.")
             return False
+    
+    def scan_guess(self) -> tuple:
+        try:
+            line = input("Guess: ")
+            line_split = line.split()
+            location = (int(line_split[0]), int(line_split[1]))
+            if len(line_split) not in [2, 3]:
+                raise Exception() # "Too few or too many arguments given"
+            if location[0] < 0 or location[0] >= self.width:
+                raise Exception()
+            if location[1] < 0 or location[1] >= self.height:
+                raise Exception()
+            if len(line_split) == 3:
+                if line_split[2] == "F":
+                    return (location, line_split[2])
+                else:
+                    raise Exception() # "Optional third argument must be 'F'"
+            return location
+        except:
+            print("Invalid input, try again. Usage: x y [F]. Example: '5 2' to flip tile at column 5, row 2")
+            return self.scan_guess()
+
+            
 
     def __str__(self, mode="game"):
         # add top left corner space
@@ -124,17 +162,7 @@ def buffer(*args) -> str:
     input = args[0] if args else "" 
     return str(input).ljust(3)
 
-def scan_guess() -> tuple:
-    while True:
-        try:
-            line = input("Guess: ")
-            line_split = line.split()
-            return (int(line_split[0]), int(line_split[1]))
-            # TODO move to except if more than 2 or given or if theyre out of bounds
-        except:
-            print("Invalid input, try again. Usage: int int. Example: 5 2 for row 5, column 2")
 
 
 test = Minesweeper(10, 10, 10)
 test.play()
-
