@@ -15,7 +15,7 @@ def symbol(input: int) -> str:
     elif input == FLAG:
         return 'F'
     elif input == UNKNOWN:
-        return '.'
+        return '-'
     elif input == 0:
         return ' '
     else:
