@@ -4,24 +4,20 @@ from tile import Tile
 import codes
 
 class Board:
-    
     def __init__(self, width, height, number_bombs) -> None:
-        self.BOMB = -1
-        self.NOT_BOMB = -2
-        self.FLAGGED = -3
-        self.HIDDEN = -4
-
         self.width = width
         self.height = height
         self.number_bombs = number_bombs
         self.first_guess = True
         self.tiles = np.empty((width, height), Tile)
+        self.status = codes.ONGOING
+        self.number_unflipped = width * height - number_bombs
 
         # create tiles
         number_tiles = width * height
         tiles_list = []
         for i in range(number_tiles - number_bombs):
-            tiles_list.append(Tile(0))
+            tiles_list.append(Tile(codes.NOT_BOMB))
         for i in range(number_bombs):
             tiles_list.append(Tile(codes.BOMB))
 
@@ -38,7 +34,7 @@ class Board:
 
 
     def swap_bomb(self, location) -> None:
-        self.tiles[location].true_value = 0
+        self.tiles[location].true_value = codes.NOT_BOMB
         self.extra_tile.true_value = codes.BOMB
 
     def get_neighbor_locations(self, location) -> list[tuple]:
@@ -47,7 +43,7 @@ class Board:
         x_min, x_max = max(x - 1, 0), min(x + 1, self.width - 1)
         neighbor_locations = []
         for current_y in range(x_min, x_max + 1):
-            for current_x in range(y_min, y_max, + 1):
+            for current_x in range(y_min, y_max + 1):
                 if current_y != x or current_x != y:
                     neighbor_locations.append((current_y, current_x))
         return neighbor_locations
@@ -57,22 +53,39 @@ class Board:
             for y in range(self.height):
                 if self.tiles[x, y].true_value == codes.BOMB:
                     continue
+                value = 0
                 for neighbor_location in self.get_neighbor_locations((x, y)):
                     if self.tiles[neighbor_location].true_value == codes.BOMB:
-                        self.tiles[x, y].true_value += 1
+                        value += 1
+                self.tiles[x, y].true_value = value
+
         
     def flip(self, location) -> None:
+        # on first guess, move bomb if necessary then initialize all non-bomb tile values
         if self.first_guess:
             self.first_guess = False
             if self.tiles[location].true_value == codes.BOMB:
                 self.swap_bomb(location)
             self.set_tile_values()
+        # reveal tile
+        if self.tiles[location].game_value == codes.UNKNOWN:
             self.tiles[location].game_value = self.tiles[location].true_value
+            self.number_unflipped -= 1
+        else:
+            pass    # TODO handle clicking a revealed tile to expose other guarenteed to not be bombs
+        # if guess is a zero tile, flip all neighboring tiles (including neighbors of additional 0 tiles discovered in the process)
+        if self.tiles[location].true_value == 0:
+            for neighbor_locations in self.get_neighbor_locations(location):
+                if self.tiles[neighbor_locations].game_value == codes.UNKNOWN:
+                    self.flip(neighbor_locations)
+        # change game status if necessary
+        if self.tiles[location].true_value == codes.BOMB:
+            self.status = codes.LOST
+        elif self.number_unflipped == 0:
+            self.status = codes.WON
         
     def flag(self, location) -> None:
         self.tiles[location].game_value = codes.FLAG
-        
-
 
     def __str__(self, mode="game"):
         # add top left corner space
@@ -86,27 +99,15 @@ class Board:
             result += buffer(y)
             for x in range(self.width):
                 if mode == "game":
-                    result += buffer(codes.symbol(self.tiles[y, x].game_value))
+                    result += buffer(codes.symbol(self.tiles[x, y].game_value))
                 elif mode == "true":
-                    result += buffer(codes.symbol(self.tiles[y, x].true_value))
+                    result += buffer(codes.symbol(self.tiles[x, y].true_value))
             result += "\n"
         return result
-
-
 
 
 def buffer(*args) -> str:
     input = args[0] if args else "" 
     return str(input).ljust(3)
 
-
-    
-test = Board(10, 10, 95)
-print(test.__str__("true"))
-print(test)
-
-test.flip((5, 2))
-
-print(test.__str__("true"))
-print(test)
 
