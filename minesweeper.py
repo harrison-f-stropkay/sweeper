@@ -5,7 +5,6 @@ import codes
 
 # TODO: make vscode recognize instance methods
 # TODO: unflag / what happens if you flip/flag a flagged tile
-# TODO: convert to the easy extra tile system
 
 class Minesweeper:
     def __init__(self, width, height, number_bombs) -> None:
@@ -23,8 +22,6 @@ class Minesweeper:
             tiles_list.append(Tile(codes.NOT_BOMB))
         for i in range(number_bombs):
             tiles_list.append(Tile(codes.BOMB))
-        # store extra non-bomb tile
-        self.extra_tile = tiles_list[0]
         # Fisher–Yates shuffle
         for i in range(number_tiles):
             random_index = random.randrange(width * height - i)
@@ -34,8 +31,12 @@ class Minesweeper:
 
 
     def swap_bomb(self, location) -> None:
-        self.tiles[location].true_value = codes.NOT_BOMB
-        self.extra_tile.true_value = codes.BOMB
+        for y in range(self.height):
+            for x in range(self.width):
+                if self.tiles[x, y].true_value == codes.NOT_BOMB:
+                    self.tiles[x, y].true_value = codes.BOMB
+                    self.tiles[location].true_value = codes.NOT_BOMB
+                    return
 
     def get_neighbor_locations(self, location) -> list[tuple]:
         x, y = location[0], location[1]
@@ -105,6 +106,8 @@ class Minesweeper:
             else:
                 self.flip(cleaned_input)
             print(self)
+            print(self.__str__("true"))
+
         # print concluding message
         if self.status == codes.WON:
             print("Game won!")
@@ -161,5 +164,5 @@ def buffer(*args) -> str:
 
 
 
-test = Minesweeper(10, 10, 10)
+test = Minesweeper(10, 10, 12)
 test.play()
