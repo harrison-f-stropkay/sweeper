@@ -4,7 +4,6 @@ from tile import Tile
 import codes
 
 # TODO: make vscode recognize instance methods
-# TODO: unflag / what happens if you flip/flag a flagged tile
 
 class Minesweeper:
     def __init__(self, width, height, number_bombs) -> None:
@@ -76,12 +75,12 @@ class Minesweeper:
         else:
             number_flagged_neighbors = 0
             for neighbor_location in self.get_neighbor_locations(location):
-                if self.tiles[location].game_value == codes.FLAG:
+                if self.tiles[neighbor_location].game_value == codes.FLAG:
                     number_flagged_neighbors += 1
             if number_flagged_neighbors == self.tiles[location].game_value:
                 for neighbor_location in self.get_neighbor_locations(location):
-                    self.flip(neighbor_location)
-
+                    if self.tiles[neighbor_location].game_value == codes.UNFLIPPED:
+                        self.flip(neighbor_location)
         # if guess is a zero tile, flip all neighboring tiles (including neighbors of additional 0 tiles discovered in the process)
         if self.tiles[location].true_value == 0:
             for neighbor_location in self.get_neighbor_locations(location):
@@ -92,21 +91,30 @@ class Minesweeper:
             self.status = codes.LOST
         elif self.number_unflipped == 0:
             self.status = codes.WON
-        
+
     def flag(self, location) -> None:
-        self.tiles[location].game_value = codes.FLAG
+        self.tiles[location].game_value = codes.FLAG                
 
     def play(self) -> bool:
         print(self)
         # game loop
         while self.status == codes.ONGOING:
             cleaned_input = self.scan_guess()
-            if type(cleaned_input[0]) == tuple:
-                self.flag(cleaned_input[0])
+            # when input is of the form x y
+            if type(cleaned_input[0]) == int:
+                location = cleaned_input
+                if self.tiles[location].game_value == codes.FLAG:
+                    self.tiles[location].game_value = codes.UNFLIPPED
+                else:
+                    self.flip(cleaned_input)
+            # when input is of the form x y F
             else:
-                self.flip(cleaned_input)
+                location = cleaned_input[0]
+                if self.tiles[location].game_value == codes.UNFLIPPED:
+                    self.flag(location)
+                else:
+                    print("Error. Cannot flag a revealed tile.")
             print(self)
-            print(self.__str__("true"))
 
         # print concluding message
         if self.status == codes.WON:
@@ -122,7 +130,7 @@ class Minesweeper:
             line_split = line.split()
             location = (int(line_split[0]), int(line_split[1]))
             if len(line_split) not in [2, 3]:
-                raise Exception() # "Too few or too many arguments given"
+                raise Exception()
             if location[0] < 0 or location[0] >= self.width:
                 raise Exception()
             if location[1] < 0 or location[1] >= self.height:
@@ -131,7 +139,7 @@ class Minesweeper:
                 if line_split[2] == "F":
                     return (location, line_split[2])
                 else:
-                    raise Exception() # "Optional third argument must be 'F'"
+                    raise Exception()
             return location
         except:
             print("Invalid input, try again. Usage: x y [F]. Example: '5 2' to flip tile at column 5, row 2")
