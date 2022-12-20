@@ -2,6 +2,7 @@ import numpy as np
 import random
 import codes
 
+
 class Minesweeper:
     def __init__(self, width, height, number_bombs) -> None:
         self.width = width
@@ -25,7 +26,6 @@ class Minesweeper:
         # convert to numpy 2-d array
         self.real_tiles = np.array(real_tiles_list).reshape((width, height))
 
-
     def swap_bomb(self, location) -> None:
         for y in range(self.height):
             for x in range(self.width):
@@ -33,7 +33,6 @@ class Minesweeper:
                     self.real_tiles[x, y] = codes.BOMB
                     self.real_tiles[location] = codes.NOT_BOMB
                     return
-
 
     def get_neighbor_locations(self, location) -> list[tuple]:
         x, y = location[0], location[1]
@@ -46,7 +45,6 @@ class Minesweeper:
                     neighbor_locations.append((current_y, current_x))
         return neighbor_locations
 
-
     def set_tile_values(self) -> None:
         for x in range(self.width):
             for y in range(self.height):
@@ -57,7 +55,6 @@ class Minesweeper:
                     if self.real_tiles[neighbor_location] == codes.BOMB:
                         value += 1
                 self.real_tiles[x, y] = value
-
         
     def flip(self, location) -> None:
         # on first guess, move bomb if necessary then initialize all non-bomb tile values
@@ -91,10 +88,8 @@ class Minesweeper:
         elif self.number_unflipped == 0:
             self.status = codes.WON
 
-
     def flag(self, location) -> None:
-        self.game_tiles[location] = codes.FLAG    
-                    
+        self.game_tiles[location] = codes.FLAG                        
 
     def play(self) -> bool:
         print(self)
@@ -123,7 +118,6 @@ class Minesweeper:
         else:
             print("Game lost.")
             return False
-
     
     def scan_guess(self) -> tuple:
         try:
@@ -145,7 +139,6 @@ class Minesweeper:
         except:
             print("Invalid input, try again. Usage: x y [F]. Example: '5 2' to flip tile at column 5, row 2")
             return self.scan_guess()
-
             
     def __str__(self, mode="game"):
         # add top left corner space
@@ -166,11 +159,9 @@ class Minesweeper:
         return result
 
 
-
 def buffer(*args) -> str:
     input = args[0] if args else "" 
     return str(input).ljust(3)
-
 
 
 test = Minesweeper(10, 10, 12)
