@@ -1,9 +1,6 @@
 import numpy as np
 import random
-from tile import Tile
 import codes
-
-# TODO: make vscode recognize instance methods
 
 class Minesweeper:
     def __init__(self, width, height, number_bombs) -> None:
@@ -11,31 +8,32 @@ class Minesweeper:
         self.height = height
         self.number_bombs = number_bombs
         self.first_guess = True
-        self.tiles = np.empty((width, height))
+        self.game_tiles = np.full((width, height), codes.UNFLIPPED)
         self.status = codes.ONGOING
         self.number_unflipped = width * height - number_bombs
         # create tiles
         number_tiles = width * height
-        tiles_list = []
-        for i in range(number_tiles - number_bombs):
-            tiles_list.append(Tile(codes.NOT_BOMB))
+        real_tiles_list = []
         for i in range(number_bombs):
-            tiles_list.append(Tile(codes.BOMB))
+            real_tiles_list.append(codes.BOMB)
+        for i in range(number_tiles - number_bombs):
+            real_tiles_list.append(codes.NOT_BOMB)
         # Fisher–Yates shuffle
         for i in range(number_tiles):
             random_index = random.randrange(width * height - i)
-            tiles_list[random_index], tiles_list[number_tiles - 1 - i] = tiles_list[number_tiles - 1 - i], tiles_list[random_index]
+            real_tiles_list[random_index], real_tiles_list[number_tiles - 1 - i] = real_tiles_list[number_tiles - 1 - i], real_tiles_list[random_index]
         # convert to numpy 2-d array
-        self.tiles = np.array(tiles_list, dtype=Tile).reshape((width, height))
+        self.real_tiles = np.array(real_tiles_list).reshape((width, height))
 
 
     def swap_bomb(self, location) -> None:
         for y in range(self.height):
             for x in range(self.width):
-                if self.tiles[x, y].true_value == codes.NOT_BOMB:
-                    self.tiles[x, y].true_value = codes.BOMB
-                    self.tiles[location].true_value = codes.NOT_BOMB
+                if self.real_tiles[x, y] == codes.NOT_BOMB:
+                    self.real_tiles[x, y] = codes.BOMB
+                    self.real_tiles[location] = codes.NOT_BOMB
                     return
+
 
     def get_neighbor_locations(self, location) -> list[tuple]:
         x, y = location[0], location[1]
@@ -48,52 +46,55 @@ class Minesweeper:
                     neighbor_locations.append((current_y, current_x))
         return neighbor_locations
 
+
     def set_tile_values(self) -> None:
         for x in range(self.width):
             for y in range(self.height):
-                if self.tiles[x, y].true_value == codes.BOMB:
+                if self.real_tiles[x, y] == codes.BOMB:
                     continue
                 value = 0
                 for neighbor_location in self.get_neighbor_locations((x, y)):
-                    if self.tiles[neighbor_location].true_value == codes.BOMB:
+                    if self.real_tiles[neighbor_location] == codes.BOMB:
                         value += 1
-                self.tiles[x, y].true_value = value
+                self.real_tiles[x, y] = value
 
         
     def flip(self, location) -> None:
         # on first guess, move bomb if necessary then initialize all non-bomb tile values
         if self.first_guess:
             self.first_guess = False
-            if self.tiles[location].true_value == codes.BOMB:
+            if self.real_tiles[location] == codes.BOMB:
                 self.swap_bomb(location)
             self.set_tile_values()
         # when location maps to an unflipped tile, flip it
-        if self.tiles[location].game_value == codes.UNFLIPPED:
-            self.tiles[location].game_value = self.tiles[location].true_value
+        if self.game_tiles[location] == codes.UNFLIPPED:
+            self.game_tiles[location] = self.real_tiles[location]
             self.number_unflipped -= 1
         # when location maps to an unflipped tile t with value v, if t has v flagged neighbors, flip the rest of t's neighbors
         else:
             number_flagged_neighbors = 0
             for neighbor_location in self.get_neighbor_locations(location):
-                if self.tiles[neighbor_location].game_value == codes.FLAG:
+                if self.game_tiles[neighbor_location] == codes.FLAG:
                     number_flagged_neighbors += 1
-            if number_flagged_neighbors == self.tiles[location].game_value:
+            if number_flagged_neighbors == self.game_tiles[location]:
                 for neighbor_location in self.get_neighbor_locations(location):
-                    if self.tiles[neighbor_location].game_value == codes.UNFLIPPED:
+                    if self.game_tiles[neighbor_location] == codes.UNFLIPPED:
                         self.flip(neighbor_location)
         # if guess is a zero tile, flip all neighboring tiles (including neighbors of additional 0 tiles discovered in the process)
-        if self.tiles[location].true_value == 0:
+        if self.real_tiles[location] == 0:
             for neighbor_location in self.get_neighbor_locations(location):
-                if self.tiles[neighbor_location].game_value == codes.UNFLIPPED:
+                if self.game_tiles[neighbor_location] == codes.UNFLIPPED:
                     self.flip(neighbor_location)
         # change game status if necessary
-        if self.tiles[location].true_value == codes.BOMB:
+        if self.real_tiles[location] == codes.BOMB:
             self.status = codes.LOST
         elif self.number_unflipped == 0:
             self.status = codes.WON
 
+
     def flag(self, location) -> None:
-        self.tiles[location].game_value = codes.FLAG                
+        self.game_tiles[location] = codes.FLAG    
+                    
 
     def play(self) -> bool:
         print(self)
@@ -103,19 +104,18 @@ class Minesweeper:
             # when input is of the form x y
             if type(cleaned_input[0]) == int:
                 location = cleaned_input
-                if self.tiles[location].game_value == codes.FLAG:
-                    self.tiles[location].game_value = codes.UNFLIPPED
+                if self.game_tiles[location] == codes.FLAG:
+                    self.game_tiles[location] = codes.UNFLIPPED
                 else:
                     self.flip(cleaned_input)
             # when input is of the form x y F
             else:
                 location = cleaned_input[0]
-                if self.tiles[location].game_value == codes.UNFLIPPED:
+                if self.game_tiles[location] == codes.UNFLIPPED:
                     self.flag(location)
                 else:
                     print("Error. Cannot flag a revealed tile.")
             print(self)
-
         # print concluding message
         if self.status == codes.WON:
             print("Game won!")
@@ -123,6 +123,7 @@ class Minesweeper:
         else:
             print("Game lost.")
             return False
+
     
     def scan_guess(self) -> tuple:
         try:
@@ -146,7 +147,6 @@ class Minesweeper:
             return self.scan_guess()
 
             
-
     def __str__(self, mode="game"):
         # add top left corner space
         result = buffer()
@@ -159,11 +159,12 @@ class Minesweeper:
             result += buffer(y)
             for x in range(self.width):
                 if mode == "game":
-                    result += buffer(codes.symbol(self.tiles[x, y].game_value))
+                    result += buffer(codes.symbol(self.game_tiles[x, y]))
                 elif mode == "true":
-                    result += buffer(codes.symbol(self.tiles[x, y].true_value))
+                    result += buffer(codes.symbol(self.real_tiles[x, y]))
             result += "\n"
         return result
+
 
 
 def buffer(*args) -> str:
