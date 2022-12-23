@@ -26,6 +26,11 @@ class Minesweeper:
         # convert to numpy 2-d array
         self.real_tiles = np.array(real_tiles_list).reshape((width, height))
 
+
+
+        self.borders = []
+        self.known = np.full(self.game_tiles.shape, False)
+
     def swap_bomb(self, location) -> None:
         for y in range(self.height):
             for x in range(self.width):
@@ -56,7 +61,8 @@ class Minesweeper:
                         value += 1
                 self.real_tiles[x, y] = value
         
-    def flip(self, location) -> None:
+    def flip(self, location) -> list:
+        flipped_tile_locations = []
         # on first guess, move bomb if necessary then initialize all non-bomb tile values
         if self.first_guess:
             self.first_guess = False
@@ -67,6 +73,7 @@ class Minesweeper:
         if self.game_tiles[location] == codes.UNFLIPPED:
             self.game_tiles[location] = self.real_tiles[location]
             self.number_unflipped -= 1
+            flipped_tile_locations.append(location)
         # when location maps to an unflipped tile t with value v, if t has v flagged neighbors, flip the rest of t's neighbors
         else:
             number_flagged_neighbors = 0
@@ -74,19 +81,25 @@ class Minesweeper:
                 if self.game_tiles[neighbor_location] == codes.FLAG:
                     number_flagged_neighbors += 1
             if number_flagged_neighbors == self.game_tiles[location]:
+                flipped_tile_locations = []
                 for neighbor_location in self.get_neighbor_locations(location):
                     if self.game_tiles[neighbor_location] == codes.UNFLIPPED:
-                        self.flip(neighbor_location)
+                        recursive_flipped_tile_locations = self.flip(neighbor_location)
+                        flipped_tile_locations.extend(recursive_flipped_tile_locations)
         # if guess is a zero tile, flip all neighboring tiles (including neighbors of additional 0 tiles discovered in the process)
         if self.real_tiles[location] == 0:
             for neighbor_location in self.get_neighbor_locations(location):
                 if self.game_tiles[neighbor_location] == codes.UNFLIPPED:
-                    self.flip(neighbor_location)
+                    recursive_flipped_tile_locations = self.flip(neighbor_location)
+                    flipped_tile_locations.extend(recursive_flipped_tile_locations)
         # change game status if necessary
         if self.real_tiles[location] == codes.BOMB:
             self.status = codes.LOST
         elif self.number_unflipped == 0:
             self.status = codes.WON
+        # return
+        print("flipped tiles: ", flipped_tile_locations)
+        return flipped_tile_locations
 
     def flag(self, location) -> None:
         self.game_tiles[location] = codes.FLAG                        
@@ -159,9 +172,42 @@ class Minesweeper:
         return result
 
 
+
+
+
+    
+
+    def update_borders(self, new_location) -> None:
+        self.known[new_location] = True
+        if not self.get_border(new_location):
+            pass
+
+    # returns the confidence in the guess 
+    def guess(self) -> float:
+        for border in self.borders:
+            for location in border:
+                guarantee_status = self.is_guaranteed(location)
+                if guarantee_status[0]:
+                    return 1
+        return 0
+
+
+    def is_guaranteed(self, location) -> tuple:
+        return ()
+            
+
+    def get_border(self, location) -> set | None:
+        for border in self.borders:
+            if location in border:
+                return border
+        return None
+        
+    
+
 def buffer(*args) -> str:
     input = args[0] if args else "" 
     return str(input).ljust(3)
+
 
 
 test = Minesweeper(10, 10, 12)
