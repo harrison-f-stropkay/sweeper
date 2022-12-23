@@ -28,7 +28,7 @@ class Minesweeper:
 
 
 
-        self.edges = []
+        self.inside_edges = []
         self.waters = []
         self.known = np.full(self.game_tiles.shape, False)
 
@@ -108,6 +108,7 @@ class Minesweeper:
         print(self)
         # game loop
         while self.status == codes.ONGOING:
+            self.set_outside_edges()
             location, command = self.prompt()
             # input looks like: x y F
             if command == "F":
@@ -126,7 +127,6 @@ class Minesweeper:
                     self.flip(location)
             # show player the current game state and update internals
             print(self)
-            self.update_edges(())                       ###
         # print concluding message
         if self.status == codes.WON:
             print("Game won!")
@@ -181,14 +181,14 @@ class Minesweeper:
 # TODO: compare to probability of random tile having a bomb, choose random if better
 # TODO: change everything to say location or opposite?
 # TODO: efficiency: return a list of the guarantees and act accordingly, not one at a time
-# TODO: improve update_edges
+# TODO: improve update_inside_edges
     
 
 
     # returns the confidence in the guess and the location
     def guess(self) -> float:
         # see if there is a guaranteed bomb or safe tile
-        for edge in self.edges:
+        for edge in self.inside_edges:
             for location in edge:
                 if (potential_neighbor := self.get_guarantee_neighbor(location)) == None:
                     continue
@@ -226,13 +226,56 @@ class Minesweeper:
         return None
 
 
-    def update_edges(self, location) -> None:
+    def update_inside_edges(self, location) -> None:
         one_big_edge = set()
         for x in range(self.width):
             for y in range(self.height):
                 if self.is_edge_tile((x, y)):
                     one_big_edge.add((x, y))
-        self.edges = [one_big_edge]
+        self.inside_edges = [one_big_edge]
+
+    def set_outside_edges(self) -> None:
+        self.outside_edges = []
+        visited = np.full((self.width, self.height), False)
+        for x in range(self.width):
+            for y in range(self.height):
+                location = (x, y)
+                if not visited[location] and self.is_outer(location):
+                    outside_edge = set()
+                    self.name_helper(location, outside_edge, visited)
+                    self.outside_edges.append(outside_edge)
+                else:
+                    visited[location] = True
+        for outside_edge in self.outside_edges:
+            print(str(outside_edge))
+
+
+    def name_helper(self, location, outside_edge: set, visited) -> None:
+        if not visited[location] and self.is_outer(location):
+            visited[location] = True
+            outside_edge.add(location)
+            for neighbor in self.get_neighbor_locations(location):
+                self.name_helper(neighbor, outside_edge, visited)
+
+        
+
+        
+
+            
+    def is_flipped(self, location):
+        return self.game_tiles[location] >= 0
+
+    def is_outer(self, location) -> bool:
+        if self.is_flipped(location):
+            return False
+        for neighbor in self.get_neighbor_locations(location):
+            if self.is_flipped(neighbor):
+                return True
+        return False
+        
+        
+
+
 
 
     def is_edge_tile(self, location) -> bool:
@@ -254,7 +297,7 @@ class Minesweeper:
 
 
     # def get_edge(self, location) -> set | None:
-    #     for border in self.edges:
+    #     for border in self.inside_edges:
     #         if location in border:
     #             return border
     #     return None
