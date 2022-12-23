@@ -108,7 +108,6 @@ class Minesweeper:
         print(self)
         # game loop
         while self.status == codes.ONGOING:
-            self.set_outside_edges()
             location, command = self.prompt()
             # input looks like: x y F
             if command == "F":
@@ -118,6 +117,8 @@ class Minesweeper:
                     print("Error. Cannot flag a revealed tile.")
             # input looks like: G (or empty)
             elif command == "G":
+                self.set_outside_edges()
+                self.set_inside_edges()
                 print(self.guess())
             # input looks like: x y
             else:
@@ -226,7 +227,7 @@ class Minesweeper:
         return None
 
 
-    def update_inside_edges(self, location) -> None:
+    def set_inside_edges(self) -> None:
         one_big_edge = set()
         for x in range(self.width):
             for y in range(self.height):
@@ -235,7 +236,7 @@ class Minesweeper:
         self.inside_edges = [one_big_edge]
 
     def set_outside_edges(self) -> None:
-        self.outside_edges = []
+        self.outside_edges = list()
         visited = np.full((self.width, self.height), False)
         for x in range(self.width):
             for y in range(self.height):
@@ -247,7 +248,7 @@ class Minesweeper:
                 else:
                     visited[location] = True
         for outside_edge in self.outside_edges:
-            print(str(outside_edge))
+            print(len(outside_edge), ": ", str(outside_edge))
 
 
     def name_helper(self, location, outside_edge: set, visited) -> None:
