@@ -1,4 +1,5 @@
 import numpy as np
+import math
 import random
 import codes
 
@@ -21,7 +22,7 @@ class Minesweeper:
             real_tiles_list.append(codes.NOT_BOMB)
         # Fisher–Yates shuffle
         for i in range(number_tiles):
-            random_index = random.randrange(width * height - i)
+            random_index = random.randrange(number_tiles - i)
             real_tiles_list[random_index], real_tiles_list[number_tiles - 1 - i] = real_tiles_list[number_tiles - 1 - i], real_tiles_list[random_index]
         # convert to numpy 2-d array
         self.real_tiles = np.array(real_tiles_list).reshape((width, height))
@@ -182,7 +183,8 @@ class Minesweeper:
 # TODO: compare to probability of random tile having a bomb, choose random if better
 # TODO: change everything to say location or opposite?
 # TODO: efficiency: return a list of the guarantees and act accordingly, not one at a time
-# TODO: improve update_inside_edges
+# TODO: improve set_inside_edges
+# TODO: move sweeper to other file
     
 
 
@@ -201,9 +203,9 @@ class Minesweeper:
                     self.flip(location)
                     return float(1)
         
-        # otherwise, flip the most likely safe tile
-        return 0
-
+        # otherwise, do what is most probably a good move
+        # TODO: change codes.BOMB to codes.FLAG in sweeper cases
+        
 
     def get_guarantee_neighbor(self, location) -> tuple | None:
         tile_value = self.game_tiles[location]
@@ -235,6 +237,7 @@ class Minesweeper:
                     one_big_edge.add((x, y))
         self.inside_edges = [one_big_edge]
 
+
     def set_outside_edges(self) -> None:
         self.outside_edges = list()
         visited = np.full((self.width, self.height), False)
@@ -243,7 +246,7 @@ class Minesweeper:
                 location = (x, y)
                 if not visited[location] and self.is_outer(location):
                     outside_edge = set()
-                    self.name_helper(location, outside_edge, visited)
+                    self.seek_edge(location, outside_edge, visited)
                     self.outside_edges.append(outside_edge)
                 else:
                     visited[location] = True
@@ -251,20 +254,18 @@ class Minesweeper:
             print(len(outside_edge), ": ", str(outside_edge))
 
 
-    def name_helper(self, location, outside_edge: set, visited) -> None:
+    def seek_edge(self, location, outside_edge: set, visited) -> None:
         if not visited[location] and self.is_outer(location):
             visited[location] = True
             outside_edge.add(location)
             for neighbor in self.get_neighbor_locations(location):
-                self.name_helper(neighbor, outside_edge, visited)
+                self.seek_edge(neighbor, outside_edge, visited)
 
-        
 
-        
-
-            
     def is_flipped(self, location):
-        return self.game_tiles[location] >= 0
+        tile_value = self.game_tiles[location]
+        return tile_value >= 0 or tile_value == codes.FLIPPED
+
 
     def is_outer(self, location) -> bool:
         if self.is_flipped(location):
@@ -274,10 +275,6 @@ class Minesweeper:
                 return True
         return False
         
-        
-
-
-
 
     def is_edge_tile(self, location) -> bool:
         has_flipped_neighbor = False
@@ -289,19 +286,110 @@ class Minesweeper:
                 has_unflipped_neighbor = True
         return has_flipped_neighbor and has_unflipped_neighbor
 
+
+    # TODO: what if bad flag leads to best_guess with no possible configurations, would divide by 0, fix that
+
+
+    def best_guess(self) -> tuple:
+        self.prob_tiles = np.full((self.width, self.height), math.nan)
+
+        # set all flipped tiles to flipped constant
+        for x in range(self.width):
+            for y in range(self.height):
+                if self.game_tiles[x, y] >= 0:
+                    self.prob_tiles = codes.FLIPPED
+
+        # set all outside edge tiles probabilities
+
+        # find probability of a bomb being in an untouched tile
+
+        # compare every other probability to untouched tile probability
+
+        # if untouched is best, return the most south then east untouched tile (least likely to receive first guess bomb)
+
+    # TODO: make outside edge its own object, put sweeper in its own too
+
+    
+    def set_outside_edge_prob(self, outside_edge) -> None:
+        # dicts are officially ordered in python 3.7 and beyond
+        self.tiles_to_sums = dict.fromkeys(outside_edge, 0)
+        tiles_to_guesses = dict.fromkeys(outside_edge, codes.UNSET)
+        
+
+        number_configurations = self.recursive_configuration(tiles_to_guesses, 0)
+
+        # reset game tiles
+
+
+
+
+    def recursive_configuration(self, tiles_to_guesses: dict) -> int:
+        # if we complete a configuration, retune 1
+        # if we reach a dead end, return 0
+        # if we are still in the middle of a potentially viable configuration, recursively add
+        # therefore, the root call of this function returns the number of complete configurations
+
+        # set game tiles to match current configuration
+        current_tile = None
+        for tile, guess in tiles_to_guesses.items():
+            self.game_tiles[tile] = guess
+            # current_tile will be the last tile set to flag or flipped
+            if tile != codes.UNSET:
+                current_tile = tile
+
+        # check that current tile guess is viable
+        if not self.guess_allowed(current_tile):
+            return 0
+
+        # in case we have a complete configuration
+        if i == len(tiles_to_guesses) - 1:
+            add_configuration_to_sums()
+            return 1
+        
+        # make copies of tiles_to_guesses before recursing
+        
+        
+    
+    def guess_allowed(self, location) -> bool:
+        # for each numbered neighbor of location, see if guess is allowed
+        for neighbor in self.get_neighbor_locations(location):
+            if self.is_flipped(self.game_tiles[location]) and not self.guess_allowed_neighbor(neighbor):
+                return False
+        return True 
+                
+    
+    def guess_allowed_neighbor(self, neighbor) -> bool:
+        number_flags = 0
+        number_flipped = 0
+        number_neighbors = 0
+        
+        for neighbor_of_neighbor in self.get_neighbor_locations(neighbor):
+            neighbor_of_neighbor_value = self.game_tiles[neighbor_of_neighbor]
+            if neighbor_of_neighbor_value == codes.FLAG:
+                number_flags += 1
+            elif self.is_flipped(neighbor_of_neighbor_value):
+                number_flipped += 1
+            number_neighbors += 1
+
+        neighbor_value = self.game_tiles[neighbor]
+        too_many_flags = number_flags > neighbor_value
+        too_many_flipped = number_flipped > number_neighbors - neighbor_value
+        return too_many_flags or too_many_flipped
         
 
         
+        
+
             
+
+
+        
+        
     
 
 
 
-    # def get_edge(self, location) -> set | None:
-    #     for border in self.inside_edges:
-    #         if location in border:
-    #             return border
-    #     return None
+
         
     
 
@@ -311,7 +399,9 @@ def buffer(*args) -> str:
 
 
 
-test = Minesweeper(30, 16, 99)
 # expert:
 # test = Minesweeper(30, 16, 99)
+
+test = Minesweeper(12, 12, 12)
 test.play()
+
