@@ -2,7 +2,7 @@
 
 BOMB = -1
 NOT_BOMB = -2
-FLAG = -3
+FLAGGED = -3
 UNFLIPPED = -4
 FLIPPED = -5
 UNTOUCHED = -6
@@ -17,7 +17,7 @@ def symbol(input: int) -> str:
         return '*'
     elif input == NOT_BOMB:
         return ' '
-    elif input == FLAG:
+    elif input == FLAGGED:
         return 'F'
     elif input == UNFLIPPED:
         return '-'
