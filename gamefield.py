@@ -38,10 +38,10 @@ class Gamefield(Field):
                 number_untouched_tiles += 1
         return number_untouched_tiles
 
-    def get_most_southeast_tile(self) -> tuple | None:
+    def get_most_southeast_untouched_tile(self) -> tuple | None:
         for y in reversed(range(self.height)):
             for x in reversed(range(self.width)):
-                if self.is_untouched(self.tiles[x, y]):
+                if self.is_untouched((x, y)):
                     return (x, y)
         return None
 
@@ -49,7 +49,7 @@ class Gamefield(Field):
         return self.tiles[tile] >= 0 or self.tiles[tile] == codes.FLIPPED
 
     def in_outer_edge(self, tile) -> bool:
-        if self.tiles == codes.HIDDEN:
+        if self.tiles[tile] == codes.HIDDEN:
             for neighbor in self.get_neighbors(tile):
                 if self.is_flipped(neighbor):
                     return True

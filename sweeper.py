@@ -31,19 +31,18 @@ class Sweeper:
             return None
     
     def update_guarantees(self) -> None:
-        self.update_inside_edge_tiles()
+        # set inside_edge_tiles
+        self.inside_edge_tiles.clear()
+        for tile in np.ndindex(self.gamefield.tiles.shape):
+            if self.gamefield.in_inner_edge(tile):
+                self.inside_edge_tiles.append(tile)
+        # set guarantees
         for tile in self.inside_edge_tiles:
             guarantee_neighbors = self.gamefield.get_guarantee_neighbors(tile)
             if guarantee_neighbors != None:
                 for guarantee_neighbor in guarantee_neighbors[0]:
                     # tuple: tile, guess, 1.0 (confidence in the guess)
-                    self.guarantees.append((guarantee_neighbor, guarantee_neighbors[1], float(1)))
-
-    def update_inside_edge_tiles(self) -> None:
-        self.inside_edge_tiles.clear()
-        for tile in np.ndindex(self.gamefield.tiles.shape):
-            if self.gamefield.in_outer_edge(tile):
-                self.inside_edge_tiles.append(tile)
+                    self.guarantees.append((guarantee_neighbor, guarantee_neighbors[1], float(1)))        
 
     def update_outside_edges(self) -> None:
         self.outside_edges.clear()
@@ -79,7 +78,7 @@ class Sweeper:
             for prob in all_outside_edge_probs:
                 expected_number_outside_edge_bombs += prob
             expected_number_untouched_bombs = self.gamefield.number_bombs - self.gamefield.number_flagged - expected_number_outside_edge_bombs
-            options.append((self.gamefield.get_most_southeast_tile(), expected_number_untouched_bombs / number_untouched_tiles))
+            options.append((self.gamefield.get_most_southeast_untouched_tile(), expected_number_untouched_bombs / number_untouched_tiles))
         # find and return the best option
         options_with_guess = list()
         for tile, prob in options:
@@ -88,7 +87,8 @@ class Sweeper:
                 prob = 1 - prob
                 guess = codes.FLIPPED
             options_with_guess.append((tile, guess, prob))
-        return options_with_guess[np.argmin(options_with_guess[2])]
+            # TODO: make the following line better, list comprehension?
+        return options_with_guess[np.argmin(list(map(lambda option: option[1], options_with_guess)))]
 
     def get_outside_edge_probs(self, outside_edge) -> list:
         guesses = len(outside_edge) * [codes.HIDDEN]

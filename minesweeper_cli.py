@@ -3,6 +3,7 @@ from minesweeper import Minesweeper
 from sweeper import Sweeper
 
 # TODO: don't manually do stuff here; create click/flag_click in Minesweeper
+# TODO: reveal all bombs when one is clicked 
 
 class MinesweeperCLI:
     def __init__(self, width, height, number_bombs) -> None:
@@ -32,7 +33,7 @@ class MinesweeperCLI:
             if self.minesweeper.game_status == codes.WON:
                 print("Game won!")
                 return True
-            else:
+            if self.minesweeper.game_status == codes.LOST:
                 print("Game lost.")
                 return False
         
