@@ -2,8 +2,8 @@ import codes
 from minesweeper import Minesweeper
 from sweeper import Sweeper
 
-# TODO: don't manually do stuff here; create click/flag_click in Minesweeper
 # TODO: reveal all bombs when one is clicked 
+# TODO: clean up play and auto play to have no copy and pasted code
 
 class MinesweeperCLI:
     def __init__(self, width, height, number_bombs) -> None:
@@ -33,9 +33,27 @@ class MinesweeperCLI:
             if self.minesweeper.game_status == codes.WON:
                 print("Game won!")
                 return True
-            if self.minesweeper.game_status == codes.LOST:
+            else:
                 print("Game lost.")
                 return False
+
+    def auto_play(self) -> bool:
+        print(self.minesweeper.gamefield)
+        while self.minesweeper.game_status == codes.ONGOING:
+            tile, guess, prob = self.sweeper.guess()
+            print("Confidence:", prob)
+            if guess == codes.FLIPPED:
+                self.minesweeper.flip(tile)
+            elif guess == codes.FLAGGED:
+                self.minesweeper.flag_or_unflag(tile)
+            print(self.minesweeper.gamefield)
+        if self.minesweeper.game_status == codes.WON:
+            print("Game won!")
+            return True
+        else:
+            print("Game lost.")
+            return False
+
         
     def prompt(self) -> tuple:
         try:

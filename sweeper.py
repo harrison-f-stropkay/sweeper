@@ -9,13 +9,15 @@ from gamefield import Gamefield
 # TODO: eventually ensure finding outside edge is DFS and finding their probs is BFS, could stop early if prob = 1 in BFS
 # TODO: use zip instead of i in range()... ?
 # TODO: what if bad flag leads to best_guess with no possible configurations, would divide by 0, fix that
+# TODO: fix prob above 1 for untouched // think I fixed it
+# TODO: add don't flag mode for guess, see if it does better
 
     
 class Sweeper:
 
     def __init__(self, gamefield: Gamefield) -> None:
         self.gamefield = gamefield
-        self.guarantees = list()
+        self.guarantees = set()
         self.inside_edge_tiles = list()
         self.outside_edges = list()
 
@@ -26,6 +28,7 @@ class Sweeper:
         if len(self.guarantees) == 0:
             self.update_guarantees()
         if len(self.guarantees) > 0:
+            print("USED GUARANTEED")
             return self.guarantees.pop()
         else:
             return None
@@ -42,7 +45,7 @@ class Sweeper:
             if guarantee_neighbors != None:
                 for guarantee_neighbor in guarantee_neighbors[0]:
                     # tuple: tile, guess, 1.0 (confidence in the guess)
-                    self.guarantees.append((guarantee_neighbor, guarantee_neighbors[1], float(1)))        
+                    self.guarantees.add((guarantee_neighbor, guarantee_neighbors[1], float(1)))        
 
     def update_outside_edges(self) -> None:
         self.outside_edges.clear()
@@ -78,6 +81,9 @@ class Sweeper:
             for prob in all_outside_edge_probs:
                 expected_number_outside_edge_bombs += prob
             expected_number_untouched_bombs = self.gamefield.number_bombs - self.gamefield.number_flagged - expected_number_outside_edge_bombs
+            print("num bombs", self.gamefield.number_bombs)
+            print("num flagged", self.gamefield.number_flagged)
+            print("exp num outside_edge bombs", expected_number_outside_edge_bombs)
             options.append((self.gamefield.get_most_southeast_untouched_tile(), expected_number_untouched_bombs / number_untouched_tiles))
         # find and return the best option
         options_with_guess = list()
@@ -87,46 +93,47 @@ class Sweeper:
                 prob = 1 - prob
                 guess = codes.FLIPPED
             options_with_guess.append((tile, guess, prob))
-            # TODO: make the following line better, list comprehension?
-        return options_with_guess[np.argmin(list(map(lambda option: option[1], options_with_guess)))]
+        # OR CAN USE # options_with_guess = [(tile, codes.FLAGGED if prob > 0.5 else codes.FLIPPED, prob if prob > 0.5 else 1 - prob) for tile, prob in options]
+        prob_argmax = np.argmax(list(zip(*options_with_guess))[2])
+        return options_with_guess[prob_argmax]
 
     def get_outside_edge_probs(self, outside_edge) -> list:
         guesses = len(outside_edge) * [codes.HIDDEN]
         tallies = len(outside_edge) * [0]
-        # get tallies and total number of configurations via recursion; use them to create probs
-        number_configurations = self.recursive_configuration(outside_edge, guesses, tallies, 0)
+        # set tallies and get total number of configurations via recursion
+        number_configurations = self.recursive_configuration(outside_edge, guesses, tallies, -1)
+        # reset gamefield
+        for tile in outside_edge:
+            self.gamefield.tiles[tile] = codes.HIDDEN
+        # if no configurations are possible (due to an incorrect flag guess)
+        if number_configurations == 0:
+            print("NO CONFIGURATIONS")
+            return [0.5] * len(outside_edge)
+        # create and return probs
         probs = list()
         for tally in tallies:
             probs.append(tally / number_configurations)
-        # reset game tiles and return
-        for tile in outside_edge:
-            self.gamefield.tiles[tile] = codes.HIDDEN
-        return probs
+        return probs        
 
     def recursive_configuration(self, outside_edge: list, guesses: list, tallies: list, i) -> int:
-        tile = outside_edge[i]
-        guess = guesses[i]
-        # set gamefield to match current configuration
-        for j in range(len(outside_edge)):
-            self.gamefield.tiles[outside_edge[j]] = guesses[j]
-        # if we've reached a dead end, return 0
-        if not self.gamefield.is_guess_allowed(tile):
-            return 0
-        # if we have a complete configuration, add the configuration to tallies and return 1
-        if i == len(outside_edge) - 1:
+        # for the root call, just recurse with the first configurations
+        if i != -1:
+            tile = outside_edge[i]
+            # set gamefield to match current configuration
             for j in range(len(outside_edge)):
-                if guesses[j] == codes.FLAGGED:
-                    tallies[j] += 1
-            return 1
-        # otherwise, recurse with copies and return a recursive sum
+                self.gamefield.tiles[outside_edge[j]] = guesses[j]
+            # if we've reached a dead end, return 0
+            if not self.gamefield.is_guess_allowed(tile):
+                return 0
+            # if we have a complete configuration, add the configuration to tallies and return 1
+            if i == len(outside_edge) - 1:
+                for j in range(len(outside_edge)):
+                    if guesses[j] == codes.FLAGGED:
+                        tallies[j] += 1
+                return 1
+        # recurse with copies and return a recursive sum
         guesses_flag = guesses.copy(); guesses_flag[i + 1] = codes.FLAGGED
         guesses_flip = guesses.copy(); guesses_flip[i + 1] = codes.FLIPPED
         return self.recursive_configuration(outside_edge, guesses_flag, tallies, i + 1) + self.recursive_configuration(outside_edge, guesses_flip, tallies, i + 1)
 
         
-        
-
-        
-        
-
-            

@@ -8,7 +8,7 @@ class Gamefield(Field):
 
     def __init__(self, width, height, number_bombs) -> None:
         super().__init__(width, height, number_bombs)
-        self.number_flagged = 0                             # ever used?
+        self.number_flagged = 0
 
     def get_guarantee_neighbors(self, tile) -> tuple | None:
         number_flagged_neighbors = 0
@@ -25,7 +25,7 @@ class Gamefield(Field):
         # if the info tells us there are guarantees, return them 
         tile_value = self.tiles[tile]
         if tile_value == number_flagged_neighbors:
-            return (unflipped_neighbors, codes.HIDDEN)
+            return (unflipped_neighbors, codes.FLIPPED)
         elif tile_value - number_flagged_neighbors == len(unflipped_neighbors):
             return (unflipped_neighbors, codes.FLAGGED)
         else:
@@ -45,8 +45,11 @@ class Gamefield(Field):
                     return (x, y)
         return None
 
-    def is_flipped(self, tile: tuple) -> bool:
+    def is_flipped(self, tile) -> bool:
         return self.tiles[tile] >= 0 or self.tiles[tile] == codes.FLIPPED
+
+    def is_actually_flipped(self, tile) -> bool:
+        return self.tiles[tile] >= 0
 
     def in_outer_edge(self, tile) -> bool:
         if self.tiles[tile] == codes.HIDDEN:
@@ -64,7 +67,7 @@ class Gamefield(Field):
 
     def is_guess_allowed(self, tile) -> bool:
         for neighbor in self.get_neighbors(tile):
-            if self.is_flipped(neighbor):
+            if self.is_actually_flipped(neighbor):
                 if not self.is_guess_allowed_neighbor(neighbor):
                     return False
         return True 
@@ -79,9 +82,11 @@ class Gamefield(Field):
             elif self.is_flipped(neighbor_of_neighbor):
                 number_flipped += 1
             number_neighbors += 1
-        return number_flagged > self.tiles[neighbor] or number_flipped > number_neighbors - self.tiles[neighbor]
+        return number_flagged <= self.tiles[neighbor] and number_flipped <= number_neighbors - self.tiles[neighbor]
 
     def is_untouched(self, tile) -> bool:
+        if self.is_flipped(tile) or self.tiles[tile] == codes.FLAGGED:
+            return False
         for neighbor in self.get_neighbors(tile):
             if self.is_flipped(neighbor):
                 return False

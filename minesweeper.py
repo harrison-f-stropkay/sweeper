@@ -11,7 +11,6 @@ class Minesweeper:
         self.minefield = Minefield(width, height, number_bombs)
         self.gamefield = Gamefield(width, height, number_bombs)
         self.number_flipped = 0
-        self.number_flagged = 0
         self.first_guess = True
         self.game_status = codes.ONGOING 
 
@@ -48,7 +47,7 @@ class Minesweeper:
     def flag_or_unflag(self, tile) -> None:
         if self.gamefield.tiles[tile] == codes.FLAGGED:
             self.gamefield.tiles[tile] = codes.HIDDEN
-            self.number_flagged -= 1
+            self.gamefield.number_flagged -= 1
         else:
             self.gamefield.tiles[tile] = codes.FLAGGED
-            self.number_flagged += 1
+            self.gamefield.number_flagged += 1
