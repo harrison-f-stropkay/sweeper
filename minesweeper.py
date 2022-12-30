@@ -4,7 +4,6 @@ from gamefield import Gamefield
 
 
 class Minesweeper:
-
     def __init__(self, width, height, number_bombs) -> None:
         self.number_tiles = width * height
         self.number_bombs = number_bombs

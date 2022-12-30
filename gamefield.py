@@ -5,7 +5,6 @@ import codes
 
 
 class Gamefield(Field):
-
     def __init__(self, width, height, number_bombs) -> None:
         super().__init__(width, height, number_bombs)
         self.number_flagged = 0

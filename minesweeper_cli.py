@@ -38,15 +38,12 @@ class MinesweeperCLI:
                 return False
 
     def auto_play(self) -> bool:
-        print(self.minesweeper.gamefield)
         while self.minesweeper.game_status == codes.ONGOING:
             tile, guess, prob = self.sweeper.guess()
-            print("Confidence:", prob)
             if guess == codes.FLIPPED:
                 self.minesweeper.flip(tile)
             elif guess == codes.FLAGGED:
                 self.minesweeper.flag_or_unflag(tile)
-            print(self.minesweeper.gamefield)
         if self.minesweeper.game_status == codes.WON:
             print("Game won!")
             return True

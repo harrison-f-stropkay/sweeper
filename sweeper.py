@@ -11,29 +11,29 @@ from gamefield import Gamefield
 # TODO: what if bad flag leads to best_guess with no possible configurations, would divide by 0, fix that
 # TODO: fix prob above 1 for untouched // think I fixed it
 # TODO: add don't flag mode for guess, see if it does better
+# TODO: store all extra options with prob 1 in guarantees
+# TODO: clean up options/options with guess to just use one of those?
 
-    
 class Sweeper:
-
     def __init__(self, gamefield: Gamefield) -> None:
         self.gamefield = gamefield
-        self.guarantees = set()
         self.inside_edge_tiles = list()
         self.outside_edges = list()
+        self.guarantees = set()
 
     def guess(self) -> tuple:
-        return self.guarantee_guess() or self.prob_guess()
-
-    def guarantee_guess(self) -> tuple | None:
-        if len(self.guarantees) == 0:
-            self.update_guarantees()
         if len(self.guarantees) > 0:
-            print("USED GUARANTEED")
+            return self.guarantees.pop()
+        self.assess_inside_edge_tiles()
+        if len(self.guarantees) > 0:
+            return self.guarantees.pop()
+        self.assess_outside_edges_and_untouched()
+        if len(self.guarantees) > 0:
             return self.guarantees.pop()
         else:
-            return None
+            return self.prob_guess
     
-    def update_guarantees(self) -> None:
+    def assess_inside_edge_tiles(self) -> None:
         # set inside_edge_tiles
         self.inside_edge_tiles.clear()
         for tile in np.ndindex(self.gamefield.tiles.shape):
@@ -64,7 +64,7 @@ class Sweeper:
                 for neighbor in self.gamefield.get_neighbors(tile):
                     self.seek_edge(neighbor, outside_edge, visited)
 
-    def prob_guess(self) -> tuple:
+    def assess_outside_edges_and_untouched(self) -> None:
         self.update_outside_edges()
         # create combined lists of outside edge tiles and probs 
         all_outside_edge_tiles = list()
@@ -81,21 +81,27 @@ class Sweeper:
             for prob in all_outside_edge_probs:
                 expected_number_outside_edge_bombs += prob
             expected_number_untouched_bombs = self.gamefield.number_bombs - self.gamefield.number_flagged - expected_number_outside_edge_bombs
-            print("num bombs", self.gamefield.number_bombs)
-            print("num flagged", self.gamefield.number_flagged)
-            print("exp num outside_edge bombs", expected_number_outside_edge_bombs)
             options.append((self.gamefield.get_most_southeast_untouched_tile(), expected_number_untouched_bombs / number_untouched_tiles))
         # find and return the best option
         options_with_guess = list()
+        guarantees_with_guess = list()
         for tile, prob in options:
             guess = codes.FLAGGED
             if prob < 0.5:
                 prob = 1 - prob
                 guess = codes.FLIPPED
-            options_with_guess.append((tile, guess, prob))
-        # OR CAN USE # options_with_guess = [(tile, codes.FLAGGED if prob > 0.5 else codes.FLIPPED, prob if prob > 0.5 else 1 - prob) for tile, prob in options]
-        prob_argmax = np.argmax(list(zip(*options_with_guess))[2])
-        return options_with_guess[prob_argmax]
+            option_with_guess = (tile, guess, prob)
+            options_with_guess.append(option_with_guess)
+            if prob == 1:
+                guarantees_with_guess.append(option_with_guess)
+        if len(guarantees_with_guess) > 0:
+            self.guarantees.update(guarantees_with_guess)
+        else:
+            flip_options_with_guess = list(filter(lambda option: option[1] == codes.FLIPPED, options_with_guess))
+            if len(flip_options_with_guess) == 0:
+                flip_options_with_guess = options_with_guess
+            prob_argmax = np.argmax(list(zip(*flip_options_with_guess))[2])
+            self.prob_guess = flip_options_with_guess[prob_argmax]
 
     def get_outside_edge_probs(self, outside_edge) -> list:
         guesses = len(outside_edge) * [codes.HIDDEN]

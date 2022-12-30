@@ -5,7 +5,6 @@ from field import Field
 
 
 class Minefield(Field):
-
     def __init__(self, width, height, number_bombs) -> None:
         super().__init__(width, height, number_bombs)
         self.set_bombs()

@@ -5,7 +5,6 @@ import codes
 
 # TODO: change self.tiles[tile] type thing to just tile value, get neighbors return tile values instead? likely not a good idea tho
 class Field:
-
     def __init__(self, width, height, number_bombs) -> None:
         self.width = width
         self.height = height
