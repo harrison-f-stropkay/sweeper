@@ -13,6 +13,8 @@ from gamefield import Gamefield
 # TODO: add don't flag mode for guess, see if it does better
 # TODO: store all extra options with prob 1 in guarantees
 # TODO: clean up options/options with guess to just use one of those?
+# TODO: check if tile in guarantees has been flipped by flip of recursive 0 tile
+# TODO: simple guarantee should just return the flipped tile that has a guarantee neighbor, would auto-flip
 
 class Sweeper:
     def __init__(self, gamefield: Gamefield) -> None:
@@ -75,6 +77,7 @@ class Sweeper:
         # add outside edge tiles to a list of options
         options = list(zip(all_outside_edge_tiles, all_outside_edge_probs))
         # if untouched tile(s) exist, add the most southeast to options (least likely to receive the moved first guess bomb)
+        # this will also cause every first guess to be in the bottom right corner; optimal because unflipped corners result in an increase in 50-50 guesses 
         number_untouched_tiles = self.gamefield.get_number_untouched_tiles()
         if number_untouched_tiles > 0:
             expected_number_outside_edge_bombs = 0
@@ -87,14 +90,14 @@ class Sweeper:
         guarantees_with_guess = list()
         for tile, prob in options:
             guess = codes.FLAGGED
-            if prob < 0.5:
+            if prob <= 0.5:
                 prob = 1 - prob
                 guess = codes.FLIPPED
             option_with_guess = (tile, guess, prob)
             options_with_guess.append(option_with_guess)
             if prob == 1:
                 guarantees_with_guess.append(option_with_guess)
-        if len(guarantees_with_guess) > 0:
+        if False: #len(guarantees_with_guess) > 0:
             self.guarantees.update(guarantees_with_guess)
         else:
             flip_options_with_guess = list(filter(lambda option: option[1] == codes.FLIPPED, options_with_guess))
@@ -111,10 +114,6 @@ class Sweeper:
         # reset gamefield
         for tile in outside_edge:
             self.gamefield.tiles[tile] = codes.HIDDEN
-        # if no configurations are possible (due to an incorrect flag guess)
-        if number_configurations == 0:
-            print("NO CONFIGURATIONS")
-            return [0.5] * len(outside_edge)
         # create and return probs
         probs = list()
         for tally in tallies:

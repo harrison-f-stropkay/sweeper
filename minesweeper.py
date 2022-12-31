@@ -43,6 +43,7 @@ class Minesweeper:
         elif self.number_flipped == self.number_tiles - self.number_bombs:
             self.game_status = codes.WON
             
+        self.last_flip = tile            
     def flag_or_unflag(self, tile) -> None:
         if self.gamefield.tiles[tile] == codes.FLAGGED:
             self.gamefield.tiles[tile] = codes.HIDDEN
