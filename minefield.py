@@ -21,7 +21,7 @@ class Minefield(Field):
             tiles_list[random_index], tiles_list[self.number_tiles - 1 - i] = tiles_list[self.number_tiles - 1 - i], tiles_list[random_index]
         # convert to numpy 2-d array
         self.tiles = np.array(tiles_list).reshape((self.width, self.height))
-        
+
     def swap_bomb_if_necessary(self, tile) -> None:
         if self.tiles[tile] == codes.BOMB:
             for y in range(self.height):
@@ -30,14 +30,13 @@ class Minefield(Field):
                         self.tiles[x, y] = codes.BOMB
                         self.tiles[tile] = codes.NOT_BOMB
                         return
-        
+
     def set_tile_values(self) -> None:
-        for x in range(self.width):
-            for y in range(self.height):
-                if self.tiles[x, y] == codes.BOMB:
-                    continue
-                value = 0
-                for neighbor_tile in self.get_neighbors((x, y)):
-                    if self.tiles[neighbor_tile] == codes.BOMB:
-                        value += 1
-                self.tiles[x, y] = value
+        for tile in np.ndindex(self.tiles.shape):
+            if self.tiles[tile] == codes.BOMB:
+                continue
+            value = 0
+            for neighbor_tile in self.get_neighbors(tile):
+                if self.tiles[neighbor_tile] == codes.BOMB:
+                    value += 1
+            self.tiles[tile] = value

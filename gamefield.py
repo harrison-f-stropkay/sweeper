@@ -21,7 +21,7 @@ class Gamefield(Field):
                 unflipped_neighbors.append(neighbor)
             else:
                 number_flipped_neighbors += 1
-        # if the info tells us there are guarantees, return them 
+        # if the info tells us there are guarantees, return them
         tile_value = self.tiles[tile]
         if tile_value == number_flagged_neighbors:
             return (unflipped_neighbors, codes.FLIPPED)
@@ -50,14 +50,14 @@ class Gamefield(Field):
     def is_actually_flipped(self, tile) -> bool:
         return self.tiles[tile] >= 0
 
-    def in_outer_edge(self, tile) -> bool:
+    def in_outside_edge(self, tile) -> bool:
         if self.tiles[tile] == codes.HIDDEN:
             for neighbor in self.get_neighbors(tile):
                 if self.is_flipped(neighbor):
                     return True
         return False
 
-    def in_inner_edge(self, tile) -> bool:
+    def in_inside_edge(self, tile) -> bool:
         if self.is_flipped(tile):
             for neighbor in self.get_neighbors(tile):
                 if self.tiles[neighbor] == codes.HIDDEN:
@@ -69,8 +69,8 @@ class Gamefield(Field):
             if self.is_actually_flipped(neighbor):
                 if not self.is_guess_allowed_neighbor(neighbor):
                     return False
-        return True 
-                
+        return True
+
     def is_guess_allowed_neighbor(self, neighbor) -> bool:
         number_flagged = 0
         number_flipped = 0

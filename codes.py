@@ -3,11 +3,12 @@ NOT_BOMB = -2
 FLAGGED = -3
 HIDDEN = -4
 FLIPPED = -5
-UNSET = -7
+GUESS = -7
 
 WON = 1
 LOST = 2
 ONGOING = 3
+
 
 def symbol(input: int) -> str:
     if input == BOMB:
