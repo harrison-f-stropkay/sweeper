@@ -9,3 +9,10 @@ In linear time, `Sweeper` first finds all tiles guaranteed to be bomb or non-bom
 `Sweeper` wins roughly 90% of games on beginner difficulty, 70% on intermediate, and 30% on expert. 30% might seem low, but a quick back-of-the-envelope analysis showed that the average expert game contains about 4.62 probabilistic moves, 0.32 of which are performed with 50% confidence (meaning that a sixth of all games are lost because of unavoidable 50-50 guesses). Also, the results for each game difficulty are quite close to those yielded by the strategy in [this paper](https://minesweepergame.com/math/algorithmic-approaches-to-playing-minesweeper-2015.pdf).
 
 One future improvement could be to stop outside edge recursion when a guaranteed tile is discovered. This would forfeit the advantage of finding multiple guaranteed tiles in a single function call, but in many conditions, it would halt the recursion's exponential growth. To do so, `Sweeper` should find outside edge tiles with DFS (to ensure that later recursion descends through neighboring tiles in order) and assess outside edges with BFS (to exhaust all configurations for each tile as quickly as possible). 
+
+To run `sweeper`, simply run `driver.py`. The `play` function in MinesweeperCLI returns the truth value of whether the game was won, so you can turn on `autoplay` to test `sweeper`'s performance over multiple games. In the first example below, we use `sweeper` to help win a beginner-level game. In the second, we see `sweeper` take on an expert-level game.  
+
+https://user-images.githubusercontent.com/109109392/220002674-638d86df-3bee-4486-9566-a011c6854500.mov
+
+https://user-images.githubusercontent.com/109109392/220002693-5a138559-75c2-485f-a0aa-6d70894940cb.mp4
+
