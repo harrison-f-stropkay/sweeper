@@ -10,7 +10,7 @@ In linear time, `Sweeper` first finds all tiles guaranteed to be bomb or non-bom
 
 One future improvement could be to stop outside edge recursion when a guaranteed tile is discovered. This would forfeit the advantage of finding multiple guaranteed tiles in a single function call, but in many conditions, it would halt the recursion's exponential growth. To do so, `Sweeper` should find outside edge tiles with DFS (to ensure that later recursion descends through neighboring tiles in order) and assess outside edges with BFS (to exhaust all configurations for each tile as quickly as possible). 
 
-To run `Sweeper`, simply run `driver.py`. The `play` function in MinesweeperCLI returns the truth value of whether the game was won, so you can turn on `autoplay` to test `Sweeper`'s performance over multiple games. In the first example below, we use `Sweeper` to help win a beginner-level game (we enter no guess to let `Sweeper` guess for us). In the second, we see `Sweeper` take on an expert-level game.  
+To run `Sweeper`, simply run `driver.py`. The `play` function in MinesweeperCLI returns the truth value of whether the game was won, so you can turn on `autoplay` to test `Sweeper`'s performance over multiple games, if you'd like. In the first example below, we use `Sweeper` to help win a beginner-level game (we enter no guess to let `Sweeper` guess for us). In the second, we see `Sweeper` take on an expert-level game.  
 
 
 https://user-images.githubusercontent.com/109109392/220002674-638d86df-3bee-4486-9566-a011c6854500.mov
